@@ -38,6 +38,10 @@ async fn ssh_socket(addr: &str, port: u16) -> Result<ssh2::Session, Error> {
     Ok(session)
 }
 
+async fn read_wordlist(path: PathBuf) -> String {
+    std::fs::read_to_string(path).unwrap_or_else(|_| {eprintln!("Couldn't open wordlist"); String::new()})
+}
+
 pub async fn attack(
     addr: String,
     port: u16,
@@ -50,7 +54,7 @@ pub async fn attack(
     let mut session = ssh_socket(&addr, port).await.unwrap_or_else(|e| {eprintln!("Error establishing the connection: {e}"); panic!()});
     println!("Connected to {user}@{addr}:{port}");
 
-    let string_wordlist = std::fs::read_to_string(wordlist_path).unwrap();
+    let string_wordlist = read_wordlist(wordlist_path).await;
 
     println!("Starting to crack!");
     for line in string_wordlist.lines() {
